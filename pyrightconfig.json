@@ -1,0 +1,8 @@
+{
+  "reportAttributeAccessIssue": false,
+  "reportOptionalMemberAccess": false,
+  "reportGeneralTypeIssues": false,
+  "reportAssignmentType": false,
+  "reportArgumentType": false,
+  "reportPrivateImportUsage": false
+}
