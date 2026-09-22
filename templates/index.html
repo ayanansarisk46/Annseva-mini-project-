@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}AnnSeva - Donate Food. Reduce Waste. Help People.{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <span class="hero-tag">🌱 Food Rescue & Management System</span>
+    <h1>Donate Food. Reduce Waste. Help People.</h1>
+    <p>
+        AnnSeva connects food donors with NGOs so that surplus food can reach
+        people who need it instead of being wasted.
+    </p>
+
+    <div class="hero-actions">
+        {% if not current_user.is_authenticated %}
+            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">🍲 Donate Food</a>
+            <a href="{{ url_for('register') }}" class="btn btn-accent btn-lg">🏢 Find Food (NGO)</a>
+            <a href="{{ url_for('switch_to_admin') }}" class="btn btn-danger btn-lg" style="font-weight: 700;">👑 Admin Panel</a>
+            <a href="{{ url_for('login') }}" class="btn btn-secondary btn-lg">Login</a>
+        {% elif current_user.is_admin() %}
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-danger btn-lg" style="font-weight: 700;">👑 Admin Control Center</a>
+            <a href="{{ url_for('admin_users') }}" class="btn btn-secondary btn-lg">👥 Manage Users</a>
+            <a href="{{ url_for('admin_donations') }}" class="btn btn-secondary btn-lg">🍲 Audit Donations</a>
+        {% elif current_user.is_donor() %}
+            <a href="{{ url_for('add_donation') }}" class="btn btn-primary btn-lg">+ Donate Surplus Food</a>
+            <a href="{{ url_for('donor_dashboard') }}" class="btn btn-secondary btn-lg">Go to Dashboard</a>
+            <a href="{{ url_for('switch_to_admin') }}" class="btn btn-danger btn-lg" style="font-weight: 700;">👑 Admin Panel</a>
+        {% elif current_user.is_ngo() %}
+            <a href="{{ url_for('available_donations') }}" class="btn btn-primary btn-lg">View Available Food</a>
+            <a href="{{ url_for('ngo_dashboard') }}" class="btn btn-secondary btn-lg">Go to Dashboard</a>
+            <a href="{{ url_for('switch_to_admin') }}" class="btn btn-danger btn-lg" style="font-weight: 700;">👑 Admin Panel</a>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Live Impact Statistics -->
+<section style="margin-bottom: 3.5rem;">
+    <div style="text-align: center; margin-bottom: 1.5rem;">
+        <h2 style="font-size: 1.6rem; font-weight: 800;">Real-Time Community Impact</h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Live figures aggregated directly from verified donations.</p>
+    </div>
+
+    <div class="stat-grid">
+        <div class="stat-card stat-green">
+            <div class="stat-icon">📦</div>
+            <div class="stat-info">
+                <h3>{{ stats.total_donations }}</h3>
+                <p>Total Donations</p>
+            </div>
+        </div>
+
+        <div class="stat-card stat-amber">
+            <div class="stat-icon">⚖️</div>
+            <div class="stat-info">
+                <h3>{{ stats.total_food_saved }} <small style="font-size: 1rem; font-weight: 600;">kg</small></h3>
+                <p>Food Rescued</p>
+            </div>
+        </div>
+
+        <div class="stat-card stat-blue">
+            <div class="stat-icon">🍛</div>
+            <div class="stat-info">
+                <h3>{{ stats.estimated_meals_served }}+</h3>
+                <p>Meals Provided</p>
+            </div>
+        </div>
+
+        <div class="stat-card stat-green">
+            <div class="stat-icon">🤝</div>
+            <div class="stat-info">
+                <h3>{{ stats.total_ngos }}</h3>
+                <p>Partner NGOs</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Admin Control Center Banner Card -->
+<section style="margin-bottom: 3.5rem;">
+    <div class="card" style="border: 2px solid #fecaca; background: #fffdfd; padding: 2rem; border-radius: var(--radius-lg); text-align: center; box-shadow: var(--shadow-md);">
+        <div style="font-size: 2.25rem; margin-bottom: 0.5rem;">👑</div>
+        <h3 style="font-size: 1.45rem; font-weight: 800; color: #991b1b; margin-bottom: 0.5rem;">
+            AnnSeva Administrative Control Center
+        </h3>
+        <p style="color: var(--text-muted); max-width: 650px; margin: 0 auto 1.5rem auto; font-size: 0.95rem;">
+            Superuser panel to monitor live donations, manage registered Donors &amp; NGOs, and audit real-time food rescue operations across the platform.
+        </p>
+        <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+            <a href="{{ url_for('switch_to_admin') }}" class="btn btn-danger btn-lg" style="font-weight: 700;">
+                🚀 Enter Admin Panel
+            </a>
+            <a href="{{ url_for('reports') }}" class="btn btn-secondary btn-lg" style="font-weight: 600;">
+                📊 Live Public Reports
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- How AnnSeva Works -->
+<section style="margin-bottom: 3.5rem;">
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <h2 style="font-size: 1.75rem; font-weight: 800;">How AnnSeva Works</h2>
+        <p style="color: var(--text-muted);">A seamless 4-step workflow connecting surplus food to empty plates.</p>
+    </div>
+
+    <div class="feature-grid">
+        <div class="feature-box">
+            <div class="feature-icon">📝</div>
+            <h3 style="font-size: 1.15rem; margin-bottom: 0.5rem; font-weight: 700;">1. Food Listed</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">
+                Donors (restaurants, caterers, households) list excess food, quantity, and preferred pickup time.
+            </p>
+        </div>
+
+        <div class="feature-box">
+            <div class="feature-icon">📍</div>
+            <h3 style="font-size: 1.15rem; margin-bottom: 0.5rem; font-weight: 700;">2. Smart Matching</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">
+                Our Python matching algorithm identifies the nearest active NGO using geographic distance and notifies them instantly.
+            </p>
+        </div>
+
+        <div class="feature-box">
+            <div class="feature-icon">🚚</div>
+            <h3 style="font-size: 1.15rem; margin-bottom: 0.5rem; font-weight: 700;">3. Quick Pickup</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">
+                The NGO accepts the request, coordinates pickup, and arrives at the designated donor address.
+            </p>
+        </div>
+
+        <div class="feature-box">
+            <div class="feature-icon">💖</div>
+            <h3 style="font-size: 1.15rem; margin-bottom: 0.5rem; font-weight: 700;">4. Verified Distribution</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">
+                Food is safely distributed to local shelters and people in need. The system logs food saved and updates reports.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Our Mission & Benefits -->
+<section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; margin-bottom: 3.5rem;">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">🎯 Our Mission</h3>
+        </div>
+        <p style="color: #334155; margin-bottom: 1rem; line-height: 1.7;">
+            Globally, over one-third of all food produced is lost or wasted, while millions face daily nutritional insecurity. 
+            AnnSeva bridges this logistical divide by using web technology to turn waste into nourishment.
+        </p>
+        <ul style="padding-left: 1.25rem; color: #475569; line-height: 1.8;">
+            <li>Zero landfill food waste from commercial banquet events</li>
+            <li>Direct digital channel between hospitality &amp; charitable trusts</li>
+            <li>Complete transparent status tracking from kitchen to beneficiary</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">✨ Key Benefits</h3>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+            <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
+                <span style="font-size: 1.2rem;">⚡</span>
+                <div>
+                    <strong>Rapid Coordination:</strong> Immediate in-app alerts prevent cooked food from spoiling.
+                </div>
+            </div>
+            <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
+                <span style="font-size: 1.2rem;">🗺️</span>
+                <div>
+                    <strong>Location Intelligence:</strong> Maps show nearby donation opportunities to minimize transit time.
+                </div>
+            </div>
+            <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
+                <span style="font-size: 1.2rem;">📊</span>
+                <div>
+                    <strong>Transparent Metrics:</strong> Real-time charts show kilograms saved and meals served.
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

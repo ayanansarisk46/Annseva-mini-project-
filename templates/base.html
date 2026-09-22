@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AnnSeva - Food Donation and Management System{% endblock %}</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block head_extra %}{% endblock %}
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}" class="nav-brand">
+                <span class="brand-icon">🍲</span>
+                <div>
+                    AnnSeva
+                    <span class="subtitle">Food Donation System</span>
+                </div>
+            </a>
+
+            <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">☰</button>
+
+            <ul class="nav-menu" id="navMenu">
+                {% if not current_user.is_authenticated %}
+                    <!-- Public Menu -->
+                    <li><a href="{{ url_for('index') }}" class="nav-link">Home</a></li>
+                    <li><a href="{{ url_for('about') }}" class="nav-link">About</a></li>
+                    <li><a href="{{ url_for('map_view') }}" class="nav-link">Map</a></li>
+                    <li><a href="{{ url_for('reports') }}" class="nav-link">Reports <span style="font-size:0.7rem; color:#10b981; font-weight:800;">● Live</span></a></li>
+                    <li><a href="{{ url_for('switch_to_admin') }}" class="btn btn-sm" style="background: #fef2f2; color: #b91c1c; border: 1px solid #fca5a5; font-weight: 700;">👑 Admin Panel</a></li>
+                    <li><a href="{{ url_for('login') }}" class="nav-link">Login</a></li>
+                    <li><a href="{{ url_for('register') }}" class="btn btn-primary btn-sm">Register</a></li>
+                {% elif current_user.role == 'DONOR' %}
+                    <!-- Donor Navigation -->
+                    <li><span class="role-pill role-donor">Donor</span></li>
+                    <li><a href="{{ url_for('donor_dashboard') }}" class="nav-link">Dashboard</a></li>
+                    <li><a href="{{ url_for('add_donation') }}" class="btn btn-primary btn-sm">+ Donate Food</a></li>
+                    <li><a href="{{ url_for('my_donations') }}" class="nav-link">My Donations</a></li>
+                    <li><a href="{{ url_for('map_view') }}" class="nav-link">Map</a></li>
+                    <li><a href="{{ url_for('reports') }}" class="nav-link">Reports <span style="font-size:0.7rem; color:#10b981; font-weight:800;">● Live</span></a></li>
+                    <li>
+                        <a href="{{ url_for('notifications') }}" class="nav-link">
+                            Alerts
+                            {% if unread_notifications_count > 0 %}
+                                <span class="badge-counter">{{ unread_notifications_count }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    <li><a href="{{ url_for('switch_to_admin') }}" class="nav-link" style="color: #b91c1c; font-weight: 700;" title="Switch to Admin Panel">👑 Admin</a></li>
+                    <li><a href="{{ url_for('profile') }}" class="nav-link">Profile</a></li>
+                    <li><a href="{{ url_for('logout') }}" class="btn btn-secondary btn-sm">Logout</a></li>
+                {% elif current_user.role == 'NGO' %}
+                    <!-- NGO Navigation -->
+                    <li><span class="role-pill role-ngo">NGO</span></li>
+                    <li><a href="{{ url_for('ngo_dashboard') }}" class="nav-link">Dashboard</a></li>
+                    <li><a href="{{ url_for('available_donations') }}" class="nav-link">Available Food</a></li>
+                    <li><a href="{{ url_for('accepted_donations') }}" class="nav-link">Pickups</a></li>
+                    <li><a href="{{ url_for('map_view') }}" class="nav-link">Map</a></li>
+                    <li><a href="{{ url_for('reports') }}" class="nav-link">Reports <span style="font-size:0.7rem; color:#10b981; font-weight:800;">● Live</span></a></li>
+                    <li>
+                        <a href="{{ url_for('notifications') }}" class="nav-link">
+                            Alerts
+                            {% if unread_notifications_count > 0 %}
+                                <span class="badge-counter">{{ unread_notifications_count }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    <li><a href="{{ url_for('switch_to_admin') }}" class="nav-link" style="color: #b91c1c; font-weight: 700;" title="Switch to Admin Panel">👑 Admin</a></li>
+                    <li><a href="{{ url_for('profile') }}" class="nav-link">Profile</a></li>
+                    <li><a href="{{ url_for('logout') }}" class="btn btn-secondary btn-sm">Logout</a></li>
+                {% elif current_user.role == 'ADMIN' %}
+                    <!-- Admin Navigation -->
+                    <li><span class="role-pill" style="background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; font-weight: 700;">Admin</span></li>
+                    <li><a href="{{ url_for('admin_dashboard') }}" class="nav-link">Control Panel</a></li>
+                    <li><a href="{{ url_for('admin_users') }}" class="nav-link">Users</a></li>
+                    <li><a href="{{ url_for('admin_donations') }}" class="nav-link">Donations</a></li>
+                    <li><a href="{{ url_for('reports') }}" class="nav-link">Live Reports</a></li>
+                    <li><a href="{{ url_for('map_view') }}" class="nav-link">Map</a></li>
+                    <li><a href="{{ url_for('logout') }}" class="btn btn-secondary btn-sm">Logout</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="main-wrapper">
+        <!-- Flash Alert Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-container">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            <span>{{ message }}</span>
+                            <button class="alert-close" aria-label="Close alert">&times;</button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% if error_code %}
+            <div class="card" style="text-align: center; padding: 4rem 1.5rem;">
+                <h1 style="font-size: 3rem; color: var(--danger); margin-bottom: 0.5rem;">{{ error_code }}</h1>
+                <p style="font-size: 1.25rem; color: var(--text-muted); margin-bottom: 1.5rem;">{{ error_message }}</p>
+                <a href="{{ url_for('index') }}" class="btn btn-primary">Return to Home</a>
+            </div>
+        {% else %}
+            {% block content %}{% endblock %}
+        {% endif %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div>
+                <div class="footer-brand">
+                    <span>🍲</span> AnnSeva
+                </div>
+                <p style="font-size: 0.9rem; line-height: 1.6;">
+                    AnnSeva connects restaurants, caterers, and food donors with verified local NGOs.
+                    Our mission is to reduce food wastage and eliminate hunger across our communities.
+                </p>
+            </div>
+            <div>
+                <div class="footer-title">Quick Links</div>
+                <ul class="footer-links">
+                    <li><a href="{{ url_for('index') }}">Home</a></li>
+                    <li><a href="{{ url_for('about') }}">About Project</a></li>
+                    <li><a href="{{ url_for('map_view') }}">Live Map</a></li>
+                    <li><a href="{{ url_for('reports') }}">Transparency Reports</a></li>
+                    <li><a href="{{ url_for('switch_to_admin') }}" style="color: #ef4444; font-weight: 700;">👑 Admin Control Center</a></li>
+                </ul>
+            </div>
+            <div>
+                <div class="footer-title">Academic Details</div>
+                <p style="font-size: 0.85rem; line-height: 1.6;">
+                    <strong>TY Computer Science</strong><br>
+                    Food Donation & Management System<br>
+                    Tech: Flask &bull; MySQL &bull; Chart.js &bull; Google Maps
+                </p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            &copy; {{ current_year }} AnnSeva System. Designed for College Viva &amp; Mini Project Demonstration.
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

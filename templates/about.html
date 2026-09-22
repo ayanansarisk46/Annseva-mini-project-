@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}About AnnSeva - College Project Overview{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    <div style="margin-bottom: 2rem; text-align: center;">
+        <span class="hero-tag">TY Computer Science Mini Project</span>
+        <h1 style="font-size: 2.25rem; font-weight: 800; margin-top: 0.5rem;">About AnnSeva System</h1>
+        <p style="color: var(--text-muted);">Web-based Food Donation and Management System</p>
+    </div>
+
+    <!-- Problem & Solution -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">🚨 The Problem</h3>
+        </div>
+        <p style="margin-bottom: 1rem;">
+            Food waste is a major problem across our cities. Hotels, restaurants, caterers, banquet halls, 
+            and event hosts frequently produce surplus cooked meals and edible groceries. Without an organized 
+            digital system, this nutritious food ends up in municipal landfills, while thousands of people in nearby 
+            slums and shelters suffer from hunger.
+        </p>
+        <p>
+            Traditional food donation happens ad-hoc via sporadic phone calls. Food donors do not know which NGOs 
+            are active nearby or have vehicles available, causing food to spoil before it can be collected.
+        </p>
+    </div>
+
+    <!-- Objectives -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">🎯 Project Objectives</h3>
+        </div>
+        <ul style="padding-left: 1.5rem; line-height: 1.8;">
+            <li><strong>Reduce Food Waste:</strong> Divert edible surplus food from waste bins to charitable organizations.</li>
+            <li><strong>Fast Matchmaking:</strong> Match food donors with nearest suitable NGOs using Python proximity matching.</li>
+            <li><strong>Workflow Tracking:</strong> Track the donation lifecycle across 4 distinct states: PENDING &rarr; ACCEPTED &rarr; PICKED UP &rarr; COMPLETED.</li>
+            <li><strong>In-App Alerts:</strong> Keep Donors and NGOs updated in real-time regarding acceptance, pickup, and completion.</li>
+            <li><strong>Measurable Impact:</strong> Generate dynamic charts (Chart.js) reporting total kilograms saved and meals served.</li>
+        </ul>
+    </div>
+
+    <!-- Technology Stack -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">💻 Technology Stack</h3>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div style="background: var(--bg-main); padding: 1rem; border-radius: var(--radius-md);">
+                <strong style="color: var(--primary);">Frontend:</strong>
+                <ul style="margin-top: 0.3rem; padding-left: 1.2rem; font-size: 0.9rem;">
+                    <li>HTML5 &amp; CSS3</li>
+                    <li>Vanilla JavaScript</li>
+                    <li>Chart.js (Visual Reports)</li>
+                </ul>
+            </div>
+            <div style="background: var(--bg-main); padding: 1rem; border-radius: var(--radius-md);">
+                <strong style="color: var(--secondary);">Backend:</strong>
+                <ul style="margin-top: 0.3rem; padding-left: 1.2rem; font-size: 0.9rem;">
+                    <li>Python 3</li>
+                    <li>Flask Web Framework</li>
+                    <li>Flask-Login &amp; Werkzeug</li>
+                </ul>
+            </div>
+            <div style="background: var(--bg-main); padding: 1rem; border-radius: var(--radius-md);">
+                <strong style="color: var(--accent);">Database:</strong>
+                <ul style="margin-top: 0.3rem; padding-left: 1.2rem; font-size: 0.9rem;">
+                    <li>MySQL Database</li>
+                    <li>Flask-SQLAlchemy ORM</li>
+                    <li>Auto SQLite fallback</li>
+                </ul>
+            </div>
+            <div style="background: var(--bg-main); padding: 1rem; border-radius: var(--radius-md);">
+                <strong style="color: #6366f1;">Location &amp; Logic:</strong>
+                <ul style="margin-top: 0.3rem; padding-left: 1.2rem; font-size: 0.9rem;">
+                    <li>Google Maps JS API</li>
+                    <li>Leaflet.js Fallback</li>
+                    <li>Haversine Proximity Match</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Future Scope (Viva Section 24) -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">🚀 Future Scope (Planned Enhancements)</h3>
+        </div>
+        <p style="margin-bottom: 0.75rem; color: var(--text-muted); font-size: 0.9rem;">
+            The current system provides the complete functional core. The following features are identified for future phases:
+        </p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 0.9rem;">
+            <div>&bull; Mobile Application (Android / iOS)</div>
+            <div>&bull; Volunteer Pickup Crowdsourcing</div>
+            <div>&bull; Live GPS Van Tracking</div>
+            <div>&bull; Donor &amp; NGO Rating &amp; Review System</div>
+            <div>&bull; AI-Powered Food Demand Forecasting</div>
+            <div>&bull; Automated Food Shelf-Life &amp; Expiry Checker</div>
+            <div>&bull; Municipal &amp; Government Food Bank Integration</div>
+            <div>&bull; Cold-Chain Rural Distribution Network</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
