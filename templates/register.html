@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Register - AnnSeva Food Donation System{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">📝 Create an Account</h2>
+        </div>
+
+        <form action="{{ url_for('register') }}" method="POST">
+            <!-- Role Selection -->
+            <div class="form-group">
+                <label class="form-label">I want to register as: *</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.5rem;">
+                    <label style="border: 2px solid var(--border-color); padding: 1rem; border-radius: var(--radius-md); cursor: pointer; text-align: center; transition: all 0.2s;" id="labelDonor">
+                        <input type="radio" name="role" value="DONOR" checked style="margin-right: 0.4rem;" onchange="updateRoleUI()">
+                        <strong>🍲 Donor</strong>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">Restaurant, Hotel, Caterer, Household</div>
+                    </label>
+
+                    <label style="border: 2px solid var(--border-color); padding: 1rem; border-radius: var(--radius-md); cursor: pointer; text-align: center; transition: all 0.2s;" id="labelNGO">
+                        <input type="radio" name="role" value="NGO" style="margin-right: 0.4rem;" onchange="updateRoleUI()">
+                        <strong>🏢 NGO / Charity</strong>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">Food Bank, Trust, Shelter Home</div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Name & Email -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="name" class="form-label" id="nameLabel">Organization / Full Name *</label>
+                    <input type="text" id="name" name="name" class="form-control" placeholder="e.g. Green Valley Hotel" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email" class="form-label">Email Address *</label>
+                    <input type="email" id="email" name="email" class="form-control" placeholder="e.g. contact@hotel.com" required>
+                </div>
+            </div>
+
+            <!-- Password & Phone -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="password" class="form-label">Password *</label>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Min. 6 characters" minlength="6" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone" class="form-label">Phone / Mobile Number *</label>
+                    <input type="tel" id="phone" name="phone" class="form-control"
+                           placeholder="e.g. 9876543210"
+                           inputmode="numeric"
+                           pattern="[0-9]{10}"
+                           maxlength="10"
+                           minlength="10"
+                           autocomplete="tel"
+                           onkeypress="return (event.charCode >= 48 && event.charCode <= 57)"
+                           oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)"
+                           title="Please enter a valid 10-digit mobile number (digits only, no letters or variables)"
+                           required>
+                    <div class="form-helper" style="font-size: 0.775rem; color: var(--text-muted); margin-top: 0.25rem;">Digits only (10 digits). Letters, variables, and symbols are not allowed.</div>
+                </div>
+            </div>
+
+            <!-- Address / Locality -->
+            <div class="form-group" style="margin-bottom: 2rem;">
+                <label for="location" class="form-label">Physical Address / City / Locality *</label>
+                <input type="text" id="location" name="location" class="form-control" placeholder="e.g. Andheri West, Mumbai" required>
+                <div class="form-helper">Enter your area, street, or city (e.g. Andheri West, Bandra, Kurla, Mumbai). Our system automatically connects with nearby NGOs based on your locality.</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+                Complete Registration
+            </button>
+        </form>
+
+        <div style="margin-top: 1.5rem; text-align: center; font-size: 0.9rem; color: var(--text-muted);">
+            Already have an account? <a href="{{ url_for('login') }}" style="font-weight: 600;">Sign in here</a>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateRoleUI() {
+    const isDonor = document.querySelector('input[name="role"]:checked').value === 'DONOR';
+    const labelDonor = document.getElementById('labelDonor');
+    const labelNGO = document.getElementById('labelNGO');
+    const nameLabel = document.getElementById('nameLabel');
+
+    if (isDonor) {
+        labelDonor.style.borderColor = 'var(--primary)';
+        labelDonor.style.backgroundColor = 'var(--primary-light)';
+        labelNGO.style.borderColor = 'var(--border-color)';
+        labelNGO.style.backgroundColor = '#ffffff';
+        nameLabel.innerText = "Donor Organization / Name *";
+    } else {
+        labelNGO.style.borderColor = 'var(--accent)';
+        labelNGO.style.backgroundColor = 'var(--accent-light)';
+        labelDonor.style.borderColor = 'var(--border-color)';
+        labelDonor.style.backgroundColor = '#ffffff';
+        nameLabel.innerText = "NGO / Charitable Trust Name *";
+    }
+}
+document.addEventListener('DOMContentLoaded', updateRoleUI);
+</script>
+{% endblock %}

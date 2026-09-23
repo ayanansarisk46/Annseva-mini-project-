@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}User Profile - AnnSeva{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div style="margin-bottom: 1.5rem;">
+        <h1 style="font-size: 1.85rem; font-weight: 800;">👤 My Profile &amp; Settings</h1>
+        <p style="color: var(--text-muted);">Manage your account details, contact number, and registered address.</p>
+    </div>
+
+    <div class="card">
+        <form action="{{ url_for('profile') }}" method="POST">
+            <!-- Account Badge -->
+            <div style="margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: var(--bg-main); border-radius: var(--radius-md);">
+                <div>
+                    <strong>Account Type:</strong>
+                    <span class="role-pill {% if user.is_donor() %}role-donor{% else %}role-ngo{% endif %}" style="margin-left: 0.5rem;">
+                        {{ user.role }}
+                    </span>
+                </div>
+                <small style="color: var(--text-muted);">
+                    Member since {{ user.created_at.strftime('%B %Y') if user.created_at else 'Active' }}
+                </small>
+            </div>
+
+            <!-- Email (Immutable) -->
+            <div class="form-group">
+                <label class="form-label">Email Address (Registered Login)</label>
+                <input type="email" class="form-control" value="{{ user.email }}" disabled style="background: #f1f5f9; cursor: not-allowed;">
+                <div class="form-helper">Email address cannot be changed once registered.</div>
+            </div>
+
+            <!-- Name -->
+            <div class="form-group">
+                <label for="name" class="form-label">Full Name / Organization Name *</label>
+                <input type="text" id="name" name="name" class="form-control" value="{{ user.name }}" required>
+            </div>
+
+            <!-- Phone -->
+            <div class="form-group">
+                <label for="phone" class="form-label">Phone Number *</label>
+                <input type="tel" id="phone" name="phone" class="form-control"
+                       value="{{ user.phone or '' }}"
+                       placeholder="e.g. 9876543210"
+                       inputmode="numeric"
+                       pattern="[0-9]{10}"
+                       maxlength="10"
+                       minlength="10"
+                       autocomplete="tel"
+                       onkeypress="return (event.charCode >= 48 && event.charCode <= 57)"
+                       oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)"
+                       title="Please enter a valid 10-digit mobile number (digits only, no letters or variables)"
+                       required>
+                <div class="form-helper" style="font-size: 0.775rem; color: var(--text-muted); margin-top: 0.25rem;">Digits only (10 digits). Letters, variables, and symbols are not allowed.</div>
+            </div>
+
+            <!-- Location -->
+            <div class="form-group">
+                <label for="location" class="form-label">Physical Address / Base Operating Area *</label>
+                <input type="text" id="location" name="location" class="form-control" value="{{ user.location or '' }}" placeholder="e.g. Andheri West, Mumbai" required>
+                <div class="form-helper">Your address or city used for local proximity matching.</div>
+            </div>
+
+            <!-- Change Password -->
+            <div style="border-top: 1px solid var(--border-color); padding-top: 1.25rem; margin-top: 1.25rem;">
+                <h4 style="font-size: 1rem; margin-bottom: 0.75rem;">Change Password (Optional)</h4>
+                <div class="form-group">
+                    <label for="new_password" class="form-label">New Password</label>
+                    <input type="password" id="new_password" name="new_password" class="form-control" placeholder="Leave blank to keep current password" minlength="6">
+                </div>
+            </div>
+
+            <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                <button type="submit" class="btn btn-primary btn-lg" style="flex: 2;">
+                    Save Profile Changes
+                </button>
+                <a href="{{ url_for('donor_dashboard' if user.is_donor() else 'ngo_dashboard') }}" class="btn btn-secondary btn-lg" style="flex: 1;">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

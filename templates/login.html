@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Login - AnnSeva Food Donation System{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <!-- Quick-Fill Box for College Viva Demonstrations -->
+    <div class="demo-helper-box">
+        <div class="demo-helper-title">
+            <span>⚡</span> Quick Demo Login (Click to Auto-Fill for Viva Demo):
+        </div>
+        <div class="demo-pills">
+            <button type="button" class="btn-demo-pill" onclick="fillCredentials('donor1@hotel.com', 'password123')">
+                🏨 Donor 1 (Green Valley Hotel)
+            </button>
+            <button type="button" class="btn-demo-pill" onclick="fillCredentials('donor2@caterer.com', 'password123')">
+                🎉 Donor 2 (Royal Caterers)
+            </button>
+            <button type="button" class="btn-demo-pill" onclick="fillCredentials('ngo1@rotibank.org', 'password123')">
+                🏢 NGO 1 (Roti Bank)
+            </button>
+            <button type="button" class="btn-demo-pill" onclick="fillCredentials('ngo2@feedthechildren.org', 'password123')">
+                🤝 NGO 2 (FeedTheNeedy)
+            </button>
+            <button type="button" class="btn-demo-pill" onclick="fillCredentials('admin@annseva.org', 'admin123')" style="border-color: #fca5a5; color: #b91c1c; background: #fff5f5;">
+                👑 Admin (System Control)
+            </button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">🔐 Sign In to AnnSeva</h2>
+        </div>
+
+        <form action="{{ url_for('login') }}" method="POST">
+            <div class="form-group">
+                <label for="email" class="form-label">Email Address *</label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="e.g. donor1@hotel.com" required autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Password *</label>
+                <input type="password" id="password" name="password" class="form-control" placeholder="Enter your password" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">
+                Sign In
+            </button>
+        </form>
+
+        <div style="margin-top: 1.5rem; text-align: center; font-size: 0.9rem; color: var(--text-muted);">
+            Don't have an account? <a href="{{ url_for('register') }}" style="font-weight: 600;">Register as Donor or NGO</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
