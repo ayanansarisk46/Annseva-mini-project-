@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Donor Dashboard - AnnSeva{% endblock %}
+
+{% block content %}
+<!-- Top Header & Action Buttons -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h1 style="font-size: 1.85rem; font-weight: 800;">Welcome, {{ current_user.name }}!</h1>
+        <p style="color: var(--text-muted);">Manage your food donations and coordinate pickups with local NGOs.</p>
+    </div>
+    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+        <a href="{{ url_for('add_donation') }}" class="btn btn-primary">+ Add Food Donation</a>
+        <a href="{{ url_for('my_donations') }}" class="btn btn-secondary">My Donations</a>
+        <a href="{{ url_for('switch_to_admin') }}" class="btn btn-sm" style="background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; font-weight: 700;">👑 Admin Panel</a>
+        <a href="{{ url_for('profile') }}" class="btn btn-secondary">Profile</a>
+    </div>
+</div>
+
+<!-- Stat Cards Grid -->
+<div class="stat-grid">
+    <div class="stat-card stat-blue">
+        <div class="stat-icon">📦</div>
+        <div class="stat-info">
+            <h3>{{ total_count }}</h3>
+            <p>Total Donations</p>
+        </div>
+    </div>
+
+    <div class="stat-card stat-amber">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-info">
+            <h3>{{ pending_count }}</h3>
+            <p>Pending Requests</p>
+        </div>
+    </div>
+
+    <div class="stat-card stat-blue">
+        <div class="stat-icon">🤝</div>
+        <div class="stat-info">
+            <h3>{{ accepted_count }}</h3>
+            <p>Accepted / In Progress</p>
+        </div>
+    </div>
+
+    <div class="stat-card stat-green">
+        <div class="stat-icon">✅</div>
+        <div class="stat-info">
+            <h3>{{ completed_count }}</h3>
+            <p>Completed Pickups</p>
+        </div>
+    </div>
+</div>
+
+<!-- Main Section: Recent Donations & Alerts -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: start;">
+    <!-- Recent Donations Table -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">🍲 Recent Food Donations</h2>
+            <a href="{{ url_for('my_donations') }}" style="font-size: 0.85rem; font-weight: 600;">View All &rarr;</a>
+        </div>
+
+        {% if donations %}
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Donation ID</th>
+                            <th>Food Type</th>
+                            <th>Quantity</th>
+                            <th>Pickup Date/Time</th>
+                            <th>Status</th>
+                            <th>Assigned NGO</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in donations %}
+                            <tr>
+                                <td><strong>#{{ d.id }}</strong></td>
+                                <td>{{ d.food_type }}</td>
+                                <td><strong>{{ d.quantity }}</strong> {{ d.unit }}</td>
+                                <td>{{ d.pickup_date }} <small style="color: var(--text-muted);">{{ d.pickup_time }}</small></td>
+                                <td>
+                                    <span class="status-badge status-{{ d.status.lower().replace(' ', '_') }}">
+                                        {{ d.status }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if d.ngo %}
+                                        <span style="font-weight: 600; color: var(--primary);">{{ d.ngo.name }}</span>
+                                    {% else %}
+                                        <span style="color: var(--text-muted);">Finding NGO...</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('donation_details', donation_id=d.id) }}" class="btn btn-secondary btn-sm">
+                                        View Details
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 3rem 1rem;">
+                <p style="color: var(--text-muted); margin-bottom: 1rem;">You haven't listed any food donations yet.</p>
+                <a href="{{ url_for('add_donation') }}" class="btn btn-primary">+ Create Your First Donation</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Quick Alerts Snippet -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">🔔 Recent Alerts</h2>
+            <a href="{{ url_for('notifications') }}" style="font-size: 0.85rem; font-weight: 600;">View All</a>
+        </div>
+
+        {% if notifications %}
+            <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                {% for n in notifications %}
+                    <div style="padding: 0.75rem; border-radius: var(--radius-md); background: {% if not n.is_read %}var(--primary-light){% else %}var(--bg-main){% endif %}; font-size: 0.875rem; border-left: 3px solid {% if not n.is_read %}var(--primary){% else %}var(--border-color){% endif %};">
+                        <div style="color: var(--text-main); margin-bottom: 0.25rem;">{{ n.message }}</div>
+                        <div style="color: var(--text-muted); font-size: 0.75rem;">{{ n.created_at.strftime('%d %b, %I:%M %p') }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 1.5rem 0;">No new alerts.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

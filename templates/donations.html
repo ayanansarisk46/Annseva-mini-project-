@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if page_title %}
+        {{ page_title }} - AnnSeva
+    {% elif user_role == 'DONOR' %}
+        My Food Donations - AnnSeva
+    {% else %}
+        Donation Requests - AnnSeva
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h1 style="font-size: 1.85rem; font-weight: 800;">
+                {% if page_title %}
+                    {{ page_title }}
+                {% elif user_role == 'DONOR' %}
+                    📋 My Food Donations
+                {% else %}
+                    🍲 Donation Requests
+                {% endif %}
+            </h1>
+            <p style="color: var(--text-muted);">
+                {% if user_role == 'DONOR' %}
+                    Track current status and historical records of your food contributions.
+                {% else %}
+                    Manage pickups and track completion of collected food items.
+                {% endif %}
+            </p>
+        </div>
+
+        {% if user_role == 'DONOR' %}
+            <a href="{{ url_for('add_donation') }}" class="btn btn-primary">+ Add New Donation</a>
+        {% endif %}
+    </div>
+
+    <!-- Filter Buttons (for Donor or General View) -->
+    {% if user_role == 'DONOR' %}
+        <div style="display: flex; gap: 0.5rem; margin-top: 1.25rem; flex-wrap: wrap;">
+            <a href="{{ url_for('my_donations') }}" class="btn btn-sm {% if not current_filter %}btn-primary{% else %}btn-secondary{% endif %}">
+                All ({{ donations|length if not current_filter else 'View' }})
+            </a>
+            <a href="{{ url_for('my_donations', status='PENDING') }}" class="btn btn-sm {% if current_filter == 'PENDING' %}btn-primary{% else %}btn-secondary{% endif %}">
+                ⏳ Pending
+            </a>
+            <a href="{{ url_for('my_donations', status='ACCEPTED') }}" class="btn btn-sm {% if current_filter == 'ACCEPTED' %}btn-primary{% else %}btn-secondary{% endif %}">
+                🤝 Accepted
+            </a>
+            <a href="{{ url_for('my_donations', status='PICKED UP') }}" class="btn btn-sm {% if current_filter == 'PICKED UP' %}btn-primary{% else %}btn-secondary{% endif %}">
+                🚚 Picked Up
+            </a>
+            <a href="{{ url_for('my_donations', status='COMPLETED') }}" class="btn btn-sm {% if current_filter == 'COMPLETED' %}btn-primary{% else %}btn-secondary{% endif %}">
+                ✅ Completed
+            </a>
+            <a href="{{ url_for('my_donations', status='REJECTED') }}" class="btn btn-sm {% if current_filter == 'REJECTED' %}btn-primary{% else %}btn-secondary{% endif %}">
+                ❌ Rejected
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Table Card -->
+<div class="card">
+    {% if donations %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Food Item</th>
+                        <th>Quantity</th>
+                        {% if user_role == 'NGO' %}
+                            <th>Donor Contact</th>
+                        {% else %}
+                            <th>Assigned NGO</th>
+                        {% endif %}
+                        <th>Pickup Location</th>
+                        <th>Scheduled Date</th>
+                        <th>Status</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in donations %}
+                        <tr>
+                            <td><strong>#{{ d.id }}</strong></td>
+                            <td>
+                                <strong>{{ d.food_type }}</strong>
+                                {% if d.description %}
+                                    <div style="font-size: 0.775rem; color: var(--text-muted);">{{ d.description[:35] }}...</div>
+                                {% endif %}
+                            </td>
+                            <td><strong style="color: var(--primary);">{{ d.quantity }}</strong> {{ d.unit }}</td>
+
+                            {% if user_role == 'NGO' %}
+                                <td>
+                                    <strong>{{ d.donor.name if d.donor else "Unknown" }}</strong>
+                                    <div style="font-size: 0.8rem; color: var(--text-muted);">{{ d.donor.phone or "No phone" }}</div>
+                                </td>
+                            {% else %}
+                                <td>
+                                    {% if d.ngo %}
+                                        <strong style="color: var(--primary);">{{ d.ngo.name }}</strong>
+                                        <div style="font-size: 0.8rem; color: var(--text-muted);">{{ d.ngo.phone or "" }}</div>
+                                    {% else %}
+                                        <span style="color: var(--text-muted); font-size: 0.85rem;">Matching in progress...</span>
+                                    {% endif %}
+                                </td>
+                            {% endif %}
+
+                            <td>{{ d.location }}</td>
+                            <td>
+                                <div>{{ d.pickup_date }}</div>
+                                <small style="color: var(--text-muted);">{{ d.pickup_time }}</small>
+                            </td>
+                            <td>
+                                <span class="status-badge status-{{ d.status.lower().replace(' ', '_') }}">
+                                    {{ d.status }}
+                                </span>
+                            </td>
+                            <td style="text-align: right;">
+                                <div style="display: inline-flex; gap: 0.35rem; align-items: center; justify-content: flex-end; flex-wrap: wrap;">
+                                    <a href="{{ url_for('donation_details', donation_id=d.id) }}" class="btn btn-secondary btn-sm">
+                                        View
+                                    </a>
+
+                                    {% if user_role == 'NGO' and d.status == 'PENDING' %}
+                                        <form action="{{ url_for('accept_donation', donation_id=d.id) }}" method="POST" style="margin: 0;">
+                                            <button type="submit" class="btn btn-success btn-sm">✓ Accept</button>
+                                        </form>
+                                        <form action="{{ url_for('reject_donation', donation_id=d.id) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Decline this request?');">
+                                            <button type="submit" class="btn btn-danger btn-sm">✕ Reject</button>
+                                        </form>
+                                    {% elif user_role == 'NGO' and d.status == 'ACCEPTED' %}
+                                        <form action="{{ url_for('pickup_donation', donation_id=d.id) }}" method="POST" style="margin: 0;">
+                                            <button type="submit" class="btn btn-primary btn-sm">🚚 Pick Up</button>
+                                        </form>
+                                        <form action="{{ url_for('complete_donation', donation_id=d.id) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Confirm food has been collected and distributed?');">
+                                            <button type="submit" class="btn btn-secondary btn-sm">✓ Complete</button>
+                                        </form>
+                                    {% elif user_role == 'NGO' and d.status == 'PICKED UP' %}
+                                        <form action="{{ url_for('complete_donation', donation_id=d.id) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Confirm food distribution is complete?');">
+                                            <button type="submit" class="btn btn-success btn-sm">✓ Mark Complete</button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div style="text-align: center; padding: 3.5rem 1rem;">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📭</div>
+            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">No Donations Found</h3>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+                There are no records matching your current filter.
+            </p>
+            {% if user_role == 'DONOR' %}
+                <a href="{{ url_for('add_donation') }}" class="btn btn-primary">+ Add New Donation</a>
+            {% else %}
+                <a href="{{ url_for('ngo_dashboard') }}" class="btn btn-secondary">Go to Dashboard</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Add Food Donation - AnnSeva{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div style="margin-bottom: 1.5rem;">
+        <a href="{{ url_for('donor_dashboard') }}" style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted);">&larr; Back to Dashboard</a>
+        <h1 style="font-size: 1.85rem; font-weight: 800; margin-top: 0.5rem;">🍲 List Surplus Food for Donation</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">
+            Provide food details and pickup timing. Our locality-based matching algorithm will connect the nearest verified NGO automatically.
+        </p>
+    </div>
+
+    <div class="card">
+        <form action="{{ url_for('add_donation') }}" method="POST">
+            <!-- Food Type & Quantity -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="food_type" class="form-label">Food Category / Type *</label>
+                    <select id="food_type" name="food_type" class="form-control" required>
+                        <option value="">-- Select Food Category --</option>
+                        <option value="Cooked Meals (Rice, Dal, Curries)">Cooked Meals (Rice, Dal, Curries, Rotis)</option>
+                        <option value="Vegetable Biryani & Rice Dishes">Vegetable Biryani & Rice Dishes</option>
+                        <option value="Assorted Breads and Pastries">Assorted Breads, Rolls & Pastries</option>
+                        <option value="Fresh Fruits & Raw Vegetables">Fresh Fruits & Raw Vegetables</option>
+                        <option value="Packaged / Canned Edibles">Packaged & Sealed Food Items</option>
+                        <option value="Dairy & Beverages">Dairy & Refreshing Beverages</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="quantity" class="form-label">Quantity &amp; Unit *</label>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="number" id="quantity" name="quantity" class="form-control" placeholder="e.g. 25" step="0.5" min="1" required style="flex: 2;">
+                        <select id="unit" name="unit" class="form-control" style="flex: 1.5;">
+                            <option value="kg">kg</option>
+                            <option value="meals">meals</option>
+                            <option value="packets">packets</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pickup Date & Pickup Time -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="pickup_date" class="form-label">Pickup Date *</label>
+                    <input type="date" id="pickup_date" name="pickup_date" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="pickup_time" class="form-label">Preferred Pickup Window *</label>
+                    <input type="text" id="pickup_time" name="pickup_time" class="form-control" placeholder="e.g. 18:30 - 20:00 or Before 6 PM" required>
+                </div>
+            </div>
+
+            <!-- Location / Address -->
+            <div class="form-group">
+                <label for="location" class="form-label">Food Pickup Address &amp; Locality *</label>
+                <input type="text" id="location" name="location" class="form-control" value="{{ current_user.location or '' }}" placeholder="e.g. Andheri West, Near Metro Station, Mumbai" required>
+                <div class="form-helper">Enter the physical pickup location. The system matches this with local partner NGOs.</div>
+            </div>
+
+            <!-- Description & Storage Notes -->
+            <div class="form-group">
+                <label for="description" class="form-label">Food Description &amp; Packaging Notes</label>
+                <textarea id="description" name="description" class="form-control" rows="3" placeholder="e.g. Prepared 2 hours ago for corporate seminar. Cleanly packed in aluminium foil trays. Needs covered transport."></textarea>
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-primary btn-lg" style="flex: 2;">
+                    🚀 Submit Donation &amp; Match NGO
+                </button>
+                <a href="{{ url_for('donor_dashboard') }}" class="btn btn-secondary btn-lg" style="flex: 1;">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Auto-set today's date in pickup_date field
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    const dateInput = document.getElementById('pickup_date');
+    if (dateInput && !dateInput.value) {
+        dateInput.value = today;
+        dateInput.min = today;
+    }
+});
+</script>
+{% endblock %}
