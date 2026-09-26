@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}NGO Dashboard - AnnSeva{% endblock %}
+
+{% block content %}
+<!-- Top Header & Action Buttons -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h1 style="font-size: 1.85rem; font-weight: 800;">NGO Portal: {{ current_user.name }}</h1>
+        <p style="color: var(--text-muted);">Review pending food rescue requests, accept pickups, and manage distribution.</p>
+    </div>
+    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+        <a href="{{ url_for('available_donations') }}" class="btn btn-primary">Available Food ({{ available_count }})</a>
+        <a href="{{ url_for('accepted_donations') }}" class="btn btn-secondary">Active Pickups</a>
+        <a href="{{ url_for('map_view') }}" class="btn btn-secondary">Nearby Map</a>
+        <a href="{{ url_for('switch_to_admin') }}" class="btn btn-sm" style="background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; font-weight: 700;">👑 Admin Panel</a>
+    </div>
+</div>
+
+<!-- Stat Cards Grid -->
+<div class="stat-grid">
+    <div class="stat-card stat-amber">
+        <div class="stat-icon">🔔</div>
+        <div class="stat-info">
+            <h3>{{ available_count }}</h3>
+            <p>Available Requests</p>
+        </div>
+    </div>
+
+    <div class="stat-card stat-blue">
+        <div class="stat-icon">🚚</div>
+        <div class="stat-info">
+            <h3>{{ accepted_count }}</h3>
+            <p>Accepted Pickups</p>
+        </div>
+    </div>
+
+    <div class="stat-card stat-green">
+        <div class="stat-icon">✅</div>
+        <div class="stat-info">
+            <h3>{{ completed_count }}</h3>
+            <p>Completed Distributions</p>
+        </div>
+    </div>
+
+    <div class="stat-card stat-green">
+        <div class="stat-icon">📍</div>
+        <div class="stat-info">
+            <h3 style="font-size: 1.15rem; font-weight: 700;">{{ current_user.location or "Mumbai" }}</h3>
+            <p>Operating Locality</p>
+        </div>
+    </div>
+</div>
+
+<!-- Available Food Requests Table -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">🍲 Available Food Donation Requests</h2>
+        <span style="font-size: 0.85rem; color: var(--text-muted);">Showing pending donations assigned or in your territory</span>
+    </div>
+
+    {% if available_donations %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Food Type</th>
+                        <th>Quantity</th>
+                        <th>Donor Organization</th>
+                        <th>Pickup Location</th>
+                        <th>Pickup Date &amp; Time</th>
+                        <th>Status</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in available_donations %}
+                        <tr>
+                            <td>
+                                <strong>{{ d.food_type }}</strong>
+                                {% if d.description %}
+                                    <div style="font-size: 0.775rem; color: var(--text-muted);">{{ d.description[:45] }}...</div>
+                                {% endif %}
+                            </td>
+                            <td><strong style="color: var(--primary);">{{ d.quantity }}</strong> {{ d.unit }}</td>
+                            <td>{{ d.donor.name if d.donor else "Unknown" }}</td>
+                            <td>{{ d.location }}</td>
+                            <td>
+                                <strong>{{ d.pickup_date }}</strong>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">{{ d.pickup_time }}</div>
+                            </td>
+                            <td>
+                                <span class="status-badge status-pending">PENDING</span>
+                            </td>
+                            <td style="text-align: right;">
+                                <div style="display: inline-flex; gap: 0.4rem; justify-content: flex-end;">
+                                    <a href="{{ url_for('donation_details', donation_id=d.id) }}" class="btn btn-secondary btn-sm">
+                                        View
+                                    </a>
+                                    
+                                    <form action="{{ url_for('accept_donation', donation_id=d.id) }}" method="POST" style="margin: 0;">
+                                        <button type="submit" class="btn btn-success btn-sm">
+                                            ✓ Accept
+                                        </button>
+                                    </form>
+
+                                    <form action="{{ url_for('reject_donation', donation_id=d.id) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Are you sure you want to decline this request?');">
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            ✕ Reject
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div style="text-align: center; padding: 3rem 1rem;">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎉</div>
+            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">All Caught Up!</h3>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">There are currently no pending food donation requests waiting in your queue.</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Active Pickups Section -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">🚚 Active Pickups in Progress ({{ accepted_donations|length }})</h2>
+        <a href="{{ url_for('accepted_donations') }}" style="font-size: 0.85rem; font-weight: 600;">View All &rarr;</a>
+    </div>
+
+    {% if accepted_donations %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Food Type</th>
+                        <th>Quantity</th>
+                        <th>Donor Contact</th>
+                        <th>Pickup Address</th>
+                        <th>Status</th>
+                        <th style="text-align: right;">Quick Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in accepted_donations %}
+                        <tr>
+                            <td>
+                                <strong>{{ d.food_type }}</strong>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">Scheduled: {{ d.pickup_date }} ({{ d.pickup_time }})</div>
+                            </td>
+                            <td><strong style="color: var(--primary);">{{ d.quantity }}</strong> {{ d.unit }}</td>
+                            <td>
+                                <strong>{{ d.donor.name if d.donor else "Unknown" }}</strong>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">📞 {{ d.donor.phone or "N/A" }}</div>
+                            </td>
+                            <td>{{ d.location }}</td>
+                            <td>
+                                <span class="status-badge status-{{ d.status.lower().replace(' ', '_') }}">{{ d.status }}</span>
+                            </td>
+                            <td style="text-align: right;">
+                                <div style="display: inline-flex; gap: 0.4rem; justify-content: flex-end; flex-wrap: wrap;">
+                                    <a href="{{ url_for('donation_details', donation_id=d.id) }}" class="btn btn-secondary btn-sm">View</a>
+
+                                    {% if d.status == 'ACCEPTED' %}
+                                        <form action="{{ url_for('pickup_donation', donation_id=d.id) }}" method="POST" style="margin: 0;">
+                                            <button type="submit" class="btn btn-primary btn-sm">🚚 Pick Up</button>
+                                        </form>
+                                        <form action="{{ url_for('complete_donation', donation_id=d.id) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Confirm food collection & distribution is complete?');">
+                                            <button type="submit" class="btn btn-secondary btn-sm">✓ Complete</button>
+                                        </form>
+                                    {% elif d.status == 'PICKED UP' %}
+                                        <form action="{{ url_for('complete_donation', donation_id=d.id) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Confirm food distribution is complete?');">
+                                            <button type="submit" class="btn btn-success btn-sm">✓ Mark Complete</button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div style="text-align: center; padding: 2rem 1rem; color: var(--text-muted);">
+            No active pickups currently in transit. Accept an available request above to begin.
+        </div>
+    {% endif %}
+</div>
+
+<!-- Notifications Box -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">🔔 Recent In-App Alerts</h2>
+        <a href="{{ url_for('notifications') }}" style="font-size: 0.85rem; font-weight: 600;">View All Alerts &rarr;</a>
+    </div>
+
+    {% if notifications %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+            {% for n in notifications %}
+                <div style="padding: 1rem; border-radius: var(--radius-md); background: {% if not n.is_read %}var(--primary-light){% else %}var(--bg-main){% endif %}; border-left: 4px solid {% if not n.is_read %}var(--primary){% else %}var(--border-color){% endif %};">
+                    <p style="font-size: 0.875rem; margin-bottom: 0.35rem;">{{ n.message }}</p>
+                    <small style="color: var(--text-muted);">{{ n.created_at.strftime('%d %b %Y, %I:%M %p') }}</small>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p style="color: var(--text-muted); text-align: center; padding: 1.5rem 0;">No new notifications.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Donation #{{ donation.id }} Details - AnnSeva{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    <!-- Back Link & Header -->
+    <div style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            {% if current_user.is_donor() %}
+                <a href="{{ url_for('my_donations') }}" style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted);">&larr; Back to My Donations</a>
+            {% else %}
+                <a href="{{ url_for('ngo_dashboard') }}" style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted);">&larr; Back to NGO Dashboard</a>
+            {% endif %}
+            <h1 style="font-size: 1.85rem; font-weight: 800; margin-top: 0.5rem;">
+                Donation #{{ donation.id }}: {{ donation.food_type }}
+            </h1>
+        </div>
+
+        <div>
+            <span class="status-badge status-{{ donation.status.lower().replace(' ', '_') }}" style="font-size: 0.9rem; padding: 0.4rem 1rem;">
+                Current Status: {{ donation.status }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Status Lifecycle Visual Timeline -->
+    <div class="card" style="padding: 1.5rem 2rem;">
+        <h3 style="font-size: 1rem; color: var(--text-muted); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.5px;">
+            Donation Progress Lifecycle
+        </h3>
+
+        {% if donation.status == 'REJECTED' %}
+            <div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 1rem; border-radius: var(--radius-md); text-align: center;">
+                <strong>❌ Request Rejected:</strong> This donation could not be accommodated by the assigned NGO. The donor can modify the request or wait for re-assignment.
+            </div>
+        {% else %}
+            <div class="timeline">
+                <!-- Step 1: Pending -->
+                <div class="timeline-step {% if donation.status in ['PENDING', 'ACCEPTED', 'PICKED UP', 'COMPLETED'] %}active completed{% endif %}">
+                    <div class="step-icon">1</div>
+                    <div class="step-label">Food Listed</div>
+                    <small style="color: var(--text-muted); font-size: 0.75rem;">
+                        {{ donation.created_at.strftime('%d %b, %H:%M') }}
+                    </small>
+                </div>
+
+                <!-- Step 2: Accepted -->
+                <div class="timeline-step {% if donation.status in ['ACCEPTED', 'PICKED UP', 'COMPLETED'] %}active completed{% endif %}">
+                    <div class="step-icon">2</div>
+                    <div class="step-label">NGO Accepted</div>
+                    <small style="color: var(--text-muted); font-size: 0.75rem;">
+                        {% if donation.status in ['ACCEPTED', 'PICKED UP', 'COMPLETED'] %}Confirmed{% else %}Awaiting NGO{% endif %}
+                    </small>
+                </div>
+
+                <!-- Step 3: Picked Up -->
+                <div class="timeline-step {% if donation.status in ['PICKED UP', 'COMPLETED'] %}active completed{% endif %}">
+                    <div class="step-icon">3</div>
+                    <div class="step-label">Food Picked Up</div>
+                    <small style="color: var(--text-muted); font-size: 0.75rem;">
+                        {% if donation.status in ['PICKED UP', 'COMPLETED'] %}In Transit{% else %}Awaiting Pickup{% endif %}
+                    </small>
+                </div>
+
+                <!-- Step 4: Completed -->
+                <div class="timeline-step {% if donation.status == 'COMPLETED' %}active completed{% endif %}">
+                    <div class="step-icon">4</div>
+                    <div class="step-label">Completed &amp; Distributed</div>
+                    <small style="color: var(--text-muted); font-size: 0.75rem;">
+                        {% if donation.completed_at %}
+                            {{ donation.completed_at.strftime('%d %b, %H:%M') }}
+                        {% else %}
+                            Pending Distribution
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Two Column Detail Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+        <!-- Food & Logistics Details -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">🍲 Food &amp; Pickup Logistics</h3>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 0.85rem; font-size: 0.95rem;">
+                <div>
+                    <span style="color: var(--text-muted); display: block; font-size: 0.8rem; text-transform: uppercase;">Food Category:</span>
+                    <strong>{{ donation.food_type }}</strong>
+                </div>
+
+                <div>
+                    <span style="color: var(--text-muted); display: block; font-size: 0.8rem; text-transform: uppercase;">Quantity:</span>
+                    <strong style="font-size: 1.15rem; color: var(--primary);">{{ donation.quantity }} {{ donation.unit }}</strong>
+                </div>
+
+                <div>
+                    <span style="color: var(--text-muted); display: block; font-size: 0.8rem; text-transform: uppercase;">Scheduled Pickup:</span>
+                    <strong>{{ donation.pickup_date }}</strong> at <strong>{{ donation.pickup_time }}</strong>
+                </div>
+
+                <div>
+                    <span style="color: var(--text-muted); display: block; font-size: 0.8rem; text-transform: uppercase;">Pickup Address:</span>
+                    <div>{{ donation.location }}</div>
+                </div>
+
+                {% if donation.description %}
+                    <div>
+                        <span style="color: var(--text-muted); display: block; font-size: 0.8rem; text-transform: uppercase;">Packaging &amp; Special Instructions:</span>
+                        <div style="background: var(--bg-main); padding: 0.75rem; border-radius: var(--radius-sm); font-size: 0.9rem;">
+                            {{ donation.description }}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Participants (Donor & Assigned NGO) -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">👥 Participants Contact</h3>
+            </div>
+
+            <!-- Donor Section -->
+            <div style="margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 1px dashed var(--border-color);">
+                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.35rem;">
+                    Food Donor (Source)
+                </div>
+                <h4 style="font-size: 1.1rem; color: var(--text-main); margin-bottom: 0.25rem;">
+                    {{ donation.donor.name if donation.donor else "Unknown Donor" }}
+                </h4>
+                <div style="font-size: 0.875rem; color: var(--text-muted);">
+                    📞 Phone: <strong>{{ donation.donor.phone or "Not provided" }}</strong><br>
+                    ✉️ Email: <strong>{{ donation.donor.email if donation.donor else "" }}</strong><br>
+                    📍 Base Area: {{ donation.donor.location or "N/A" }}
+                </div>
+            </div>
+
+            <!-- NGO Section -->
+            <div>
+                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.35rem;">
+                    Assigned Community NGO (Beneficiary)
+                </div>
+                {% if donation.ngo %}
+                    <h4 style="font-size: 1.1rem; color: var(--primary); margin-bottom: 0.25rem;">
+                        {{ donation.ngo.name }}
+                    </h4>
+                    <div style="font-size: 0.875rem; color: var(--text-muted);">
+                        📞 Contact: <strong>{{ donation.ngo.phone or "N/A" }}</strong><br>
+                        ✉️ Email: <strong>{{ donation.ngo.email }}</strong><br>
+                        📍 NGO Center: {{ donation.ngo.location or "N/A" }}
+                    </div>
+                {% else %}
+                    <div style="background: var(--bg-main); padding: 1rem; border-radius: var(--radius-md); text-align: center; color: var(--text-muted); font-size: 0.9rem;">
+                        🔍 Our proximity matching system is seeking an available NGO in your locality.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Bar for NGO -->
+    {% if current_user.is_ngo() %}
+        <div class="card" style="background: #f8fafc; border-color: #cbd5e1;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h4 style="margin-bottom: 0.25rem;">NGO Action Controls</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">Update donation state as your volunteer team proceeds.</p>
+                </div>
+
+                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                    {% if donation.status == 'PENDING' %}
+                        <form action="{{ url_for('accept_donation', donation_id=donation.id) }}" method="POST" style="margin: 0;">
+                            <button type="submit" class="btn btn-success">
+                                ✓ Accept Donation Request
+                            </button>
+                        </form>
+                        <form action="{{ url_for('reject_donation', donation_id=donation.id) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Confirm rejecting this donation?');">
+                            <button type="submit" class="btn btn-danger">
+                                ✕ Decline Request
+                            </button>
+                        </form>
+                    {% elif donation.status == 'ACCEPTED' %}
+                        <form action="{{ url_for('pickup_donation', donation_id=donation.id) }}" method="POST" style="margin: 0;">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                🚚 Mark Food Picked Up
+                            </button>
+                        </form>
+                        <form action="{{ url_for('complete_donation', donation_id=donation.id) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Confirm that food collection & distribution is complete?');">
+                            <button type="submit" class="btn btn-secondary btn-lg">
+                                ✓ Complete Directly
+                            </button>
+                        </form>
+                    {% elif donation.status == 'PICKED UP' %}
+                        <form action="{{ url_for('complete_donation', donation_id=donation.id) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Confirm that food distribution is complete?');">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                ✅ Mark Completed &amp; Distributed
+                            </button>
+                        </form>
+                    {% elif donation.status == 'COMPLETED' %}
+                        <div style="color: var(--success); font-weight: 700; display: flex; align-items: center; gap: 0.4rem;">
+                            ✓ Successfully Completed on {{ donation.completed_at.strftime('%d %b %Y') if donation.completed_at else 'Verified' }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
