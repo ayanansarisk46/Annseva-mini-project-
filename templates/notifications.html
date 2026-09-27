@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications &amp; Alerts - AnnSeva{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h1 style="font-size: 1.85rem; font-weight: 800;">🔔 Notifications &amp; Alerts</h1>
+            <p style="color: var(--text-muted);">Real-time status updates on donation requests and workflow events.</p>
+        </div>
+
+        {% if notifications %}
+            <form action="{{ url_for('mark_all_notifications_read') }}" method="POST" style="margin: 0;">
+                <button type="submit" class="btn btn-secondary btn-sm">
+                    ✓ Mark All as Read
+                </button>
+            </form>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        {% if notifications %}
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                {% for n in notifications %}
+                    <div style="padding: 1.25rem; border-radius: var(--radius-md); background: {% if not n.is_read %}var(--primary-light){% else %}#ffffff{% endif %}; border: 1px solid {% if not n.is_read %}var(--primary-border){% else %}var(--border-color){% endif %}; display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                        <div style="flex: 1;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+                                {% if not n.is_read %}
+                                    <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--primary);"></span>
+                                    <strong style="color: var(--primary); font-size: 0.8rem; text-transform: uppercase;">NEW</strong>
+                                {% endif %}
+                                <span style="color: var(--text-muted); font-size: 0.8rem;">
+                                    {{ n.created_at.strftime('%d %B %Y, %I:%M %p') }}
+                                </span>
+                            </div>
+                            <p style="font-size: 0.95rem; color: var(--text-main); margin: 0; line-height: 1.5;">
+                                {{ n.message }}
+                            </p>
+                        </div>
+
+                        {% if not n.is_read %}
+                            <div>
+                                <form action="{{ url_for('mark_notification_read', notif_id=n.id) }}" method="POST" style="margin: 0;">
+                                    <button type="submit" class="btn btn-sm btn-secondary">
+                                        Mark Read
+                                    </button>
+                                </form>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 3rem 1rem;">
+                <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔕</div>
+                <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem;">No Notifications</h3>
+                <p style="color: var(--text-muted);">You're completely caught up! New donation and pickup alerts will appear here.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
