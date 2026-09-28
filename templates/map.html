@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Interactive Map - Food Donations &amp; NGOs - AnnSeva{% endblock %}
+
+{% block head_extra %}
+<!-- Leaflet CSS & JS for 100% Free Interactive Fallback Map -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+{% if google_maps_api_key %}
+    <!-- Google Maps JS API (Loaded only when API key is provided) -->
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&callback=Function.prototype" async defer></script>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h1 style="font-size: 1.85rem; font-weight: 800;">📍 AnnSeva Geographic Network Map</h1>
+        <p style="color: var(--text-muted);">
+            Visualize registered food donors, active donation pickup spots, and operational NGO centers in your city.
+        </p>
+    </div>
+
+    <div style="display: flex; gap: 1rem; align-items: center; font-size: 0.85rem; font-weight: 600;">
+        <div style="display: flex; align-items: center; gap: 0.4rem;">
+            <span style="display: inline-block; width: 14px; height: 14px; border-radius: 50%; background: #059669;"></span>
+            <span>NGO Centers</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.4rem;">
+            <span style="display: inline-block; width: 14px; height: 14px; border-radius: 50%; background: #d97706;"></span>
+            <span>Active Food Donations</span>
+        </div>
+    </div>
+</div>
+
+<!-- API Key Status / Fallback Notice -->
+{% if not google_maps_api_key %}
+    <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 0.85rem 1.25rem; border-radius: var(--radius-md); margin-bottom: 1.25rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
+        <span>ℹ️</span>
+        <div>
+            <strong>Interactive Map Active (OpenStreetMap Fallback):</strong>
+            No Google Maps API key detected in <code>.env</code>. The application is seamlessly rendering OpenStreetMap tiles so all markers, popups, and proximity features are fully functional.
+        </div>
+    </div>
+{% endif %}
+
+<!-- Map Container -->
+<div class="card" style="padding: 0.75rem; overflow: hidden;">
+    <div id="map" style="width: 100%; height: 550px; border-radius: var(--radius-md); background: #e2e8f0;"></div>
+</div>
+
+<div class="card" style="margin-top: 1.5rem;">
+    <div class="card-header">
+        <h3 class="card-title">💡 How Proximity Matching Works in AnnSeva</h3>
+    </div>
+    <p style="font-size: 0.95rem; color: #334155; line-height: 1.6;">
+        When a donor submits food, our Python backend analyzes the pickup locality, area, and city keywords against all registered NGO operating zones using <strong>Locality Proximity Matching</strong>. The request is immediately assigned to the closest NGO team in that district, minimizing transit time and keeping hot meals fresh.
+    </p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+{% endblock %}
