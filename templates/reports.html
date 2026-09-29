@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}Live Reports &amp; Food Analytics - AnnSeva{% endblock %}
+
+{% block head_extra %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<!-- Live Header Banner -->
+<div style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.35rem;">
+            <h1 style="font-size: 2rem; font-weight: 800; margin: 0;">📊 Live Transparency Reports</h1>
+            <span class="live-badge">
+                <span class="live-dot" id="liveStatusDot"></span>
+                <span id="liveStatusText">LIVE ACTIVE</span>
+            </span>
+        </div>
+        <p style="color: var(--text-muted); margin: 0;">
+            Auto-refreshing metrics showing food saved and community impact in real-time. 
+            <small style="color: var(--primary); font-weight: 600;">(Sync: <span id="liveSyncTimestamp">{{ stats.timestamp }}</span>)</small>
+        </p>
+    </div>
+
+    <!-- Live Controls (Standard View) -->
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+        <a href="{{ url_for('switch_to_admin') }}" class="btn btn-danger btn-sm" style="font-weight: 700;">
+            👑 Admin Panel
+        </a>
+        <button id="btnToggleLive" class="btn btn-primary btn-sm">
+            ⏸️ Pause Live
+        </button>
+        <button id="btnManualRefresh" class="btn btn-secondary btn-sm">
+            🔄 Refresh
+        </button>
+        <button onclick="window.print()" class="btn btn-secondary btn-sm">
+            🖨️ Export PDF
+        </button>
+    </div>
+</div>
+
+<!-- Dynamic Live Action Banner -->
+<div id="liveAlertBanner" style="display:none; padding: 0.75rem 1.25rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; font-size: 0.9rem; font-weight: 600; transition: all 0.3s ease;"></div>
+
+<!-- High-Level KPI Summary Grid -->
+<div class="stat-grid">
+    <div class="stat-card stat-green">
+        <div class="stat-icon">⚖️</div>
+        <div class="stat-info">
+            <h3 id="liveFoodSaved">{{ stats.total_food_saved }} <small style="font-size: 1rem; font-weight: 600;">kg</small></h3>
+            <p>Total Food Saved</p>
+        </div>
+    </div>
+
+    <div class="stat-card stat-blue">
+        <div class="stat-icon">🍛</div>
+        <div class="stat-info">
+            <h3 id="liveMealsServed">{{ stats.estimated_meals_served }}+</h3>
+            <p>Meals Served</p>
+        </div>
+    </div>
+
+    <div class="stat-card stat-amber">
+        <div class="stat-icon">📦</div>
+        <div class="stat-info">
+            <h3 id="liveTotalDonations">{{ stats.total_donations }}</h3>
+            <p>Total Donation Requests</p>
+        </div>
+    </div>
+
+    <div class="stat-card stat-green">
+        <div class="stat-icon">✅</div>
+        <div class="stat-info">
+            <h3 id="liveCompletedCount">{{ stats.completed_count }}</h3>
+            <p>Completed Pickups</p>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Status Breakdown Cards -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <div class="card" style="margin-bottom: 0; text-align: center; padding: 1.25rem;">
+        <span class="status-badge status-pending" style="margin-bottom: 0.5rem;">PENDING</span>
+        <h2 id="livePendingCount" style="font-size: 1.75rem; font-weight: 800; color: #b45309;">{{ stats.pending_count }}</h2>
+        <span style="font-size: 0.8rem; color: var(--text-muted);">Awaiting Pickup</span>
+    </div>
+
+    <div class="card" style="margin-bottom: 0; text-align: center; padding: 1.25rem;">
+        <span class="status-badge status-accepted" style="margin-bottom: 0.5rem;">ACCEPTED</span>
+        <h2 id="liveAcceptedCount" style="font-size: 1.75rem; font-weight: 800; color: #1d4ed8;">{{ stats.accepted_count }}</h2>
+        <span style="font-size: 0.8rem; color: var(--text-muted);">In Progress</span>
+    </div>
+
+    <div class="card" style="margin-bottom: 0; text-align: center; padding: 1.25rem;">
+        <span class="status-badge status-picked_up" style="margin-bottom: 0.5rem;">PICKED UP</span>
+        <h2 id="livePickedUpCount" style="font-size: 1.75rem; font-weight: 800; color: #6d28d9;">{{ stats.picked_up_count }}</h2>
+        <span style="font-size: 0.8rem; color: var(--text-muted);">En Route / In Transit</span>
+    </div>
+
+    <div class="card" style="margin-bottom: 0; text-align: center; padding: 1.25rem;">
+        <span class="status-badge status-completed" style="margin-bottom: 0.5rem;">COMPLETED</span>
+        <h2 id="liveCompletedBadge" style="font-size: 1.75rem; font-weight: 800; color: #065f46;">{{ stats.completed_count }}</h2>
+        <span style="font-size: 0.8rem; color: var(--text-muted);">Successfully Distributed</span>
+    </div>
+
+    <div class="card" style="margin-bottom: 0; text-align: center; padding: 1.25rem;">
+        <span class="status-badge status-rejected" style="margin-bottom: 0.5rem;">REJECTED</span>
+        <h2 id="liveRejectedCount" style="font-size: 1.75rem; font-weight: 800; color: #b91c1c;">{{ stats.rejected_count }}</h2>
+        <span style="font-size: 0.8rem; color: var(--text-muted);">Declined</span>
+    </div>
+</div>
+
+<!-- Chart.js Visualizations Grid -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+    <!-- Chart 1: Status Distribution Doughnut -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">📈 Real-Time Donation Status Ratio</h3>
+        </div>
+        <div style="height: 300px; position: relative;">
+            <canvas id="statusChart"></canvas>
+        </div>
+        <div style="text-align: center; font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem;">
+            Dynamic lifecycle ratio synced live from database.
+        </div>
+    </div>
+
+    <!-- Chart 2: Category Breakdown Bar Chart -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">🍲 Food Saved by Category</h3>
+        </div>
+        <div style="height: 300px; position: relative;">
+            <canvas id="categoryChart"></canvas>
+        </div>
+        <div style="text-align: center; font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem;">
+            Volume (kg) and frequency metrics per food category.
+        </div>
+    </div>
+</div>
+
+<!-- Live Activity Stream Table -->
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">⚡ Live Activity Stream</h3>
+        <span style="font-size: 0.8rem; color: var(--text-muted);">Recent donation events updating in real-time</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Food Item</th>
+                    <th>Quantity</th>
+                    <th>Donor</th>
+                    <th>Pickup Locality</th>
+                    <th>Status</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody id="liveActivityBody">
+                {% for item in stats.activity_stream %}
+                    <tr class="live-stream-row">
+                        <td><strong>#{{ item.id }}</strong></td>
+                        <td><strong>{{ item.food_type }}</strong></td>
+                        <td><strong style="color: var(--primary);">{{ item.quantity }} {{ item.unit }}</strong></td>
+                        <td>{{ item.donor }}</td>
+                        <td>{{ item.location }}</td>
+                        <td><span class="status-badge status-{{ item.status.lower() }}">{{ item.status }}</span></td>
+                        <td><small style="color: var(--text-muted);">{{ item.created_at }}</small></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Community Network Summary -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">🤝 AnnSeva Community Ecosystem</h3>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; text-align: center;">
+        <div>
+            <div id="liveTotalDonors" style="font-size: 2rem; font-weight: 800; color: var(--primary);">{{ stats.total_donors }}</div>
+            <div style="font-size: 0.9rem; color: var(--text-muted); font-weight: 600;">Registered Donors</div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">Hotels, caterers &amp; venues</p>
+        </div>
+        <div>
+            <div id="liveTotalNGOs" style="font-size: 2rem; font-weight: 800; color: var(--accent);">{{ stats.total_ngos }}</div>
+            <div style="font-size: 0.9rem; color: var(--text-muted); font-weight: 600;">Partner NGOs</div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">Charities &amp; community trusts</p>
+        </div>
+        <div>
+            <div id="liveAcceptedFood" style="font-size: 2rem; font-weight: 800; color: var(--secondary);">{{ stats.accepted_food }} kg</div>
+            <div style="font-size: 0.9rem; color: var(--text-muted); font-weight: 600;">Food Currently in Transit</div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">Accepted pickups undergoing collection</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/reports.js') }}"></script>
+{% endblock %}
