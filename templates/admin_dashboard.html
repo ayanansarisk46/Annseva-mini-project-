@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Control Panel - AnnSeva{% endblock %}
+
+{% block content %}
+<!-- Top Header & Action Buttons -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <h1 style="font-size: 1.85rem; font-weight: 800; margin: 0;">👑 Admin Control Center</h1>
+            <span class="role-pill" style="background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; font-weight: 700; font-size: 0.8rem; padding: 0.25rem 0.6rem;">
+                SUPERUSER
+            </span>
+        </div>
+        <p style="color: var(--text-muted); margin-top: 0.25rem;">
+            Welcome back, <strong>{{ current_user.name }}</strong>! Complete administrative control over users, donations, and platform operations.
+        </p>
+    </div>
+    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+        <a href="{{ url_for('admin_users') }}" class="btn btn-primary">
+            👥 Manage Users ({{ total_users }})
+        </a>
+        <a href="{{ url_for('admin_donations') }}" class="btn btn-secondary">
+            🍲 Manage Donations ({{ total_donations }})
+        </a>
+        <a href="{{ url_for('reports') }}" class="btn btn-secondary">
+            📊 Live Reports
+        </a>
+        <a href="{{ url_for('map_view') }}" class="btn btn-secondary">
+            🗺️ System Map
+        </a>
+        <button onclick="window.location.reload();" class="btn btn-secondary btn-sm" title="Refresh metrics">
+            🔄 Refresh
+        </button>
+    </div>
+</div>
+
+<!-- Master KPI Stat Cards Grid -->
+<div class="stat-grid" style="margin-bottom: 2rem;">
+    <div class="stat-card stat-blue">
+        <div class="stat-icon">👥</div>
+        <div class="stat-info">
+            <h3 id="statTotalUsers">{{ total_users }}</h3>
+            <p>Total Registered Users</p>
+            <small style="color: var(--text-muted); font-size: 0.775rem;">
+                {{ total_donors }} Donors · {{ total_ngos }} NGOs · {{ total_admins }} Admins
+            </small>
+        </div>
+    </div>
+
+    <div class="stat-card stat-amber">
+        <div class="stat-icon">📦</div>
+        <div class="stat-info">
+            <h3 id="statTotalDonations">{{ total_donations }}</h3>
+            <p>Total Food Donations</p>
+            <small style="color: var(--text-muted); font-size: 0.775rem;">
+                {{ pending_count }} Pending · {{ accepted_count + picked_up_count }} Active
+            </small>
+        </div>
+    </div>
+
+    <div class="stat-card stat-green">
+        <div class="stat-icon">⚖️</div>
+        <div class="stat-info">
+            <h3 id="statFoodSaved">{{ total_food_saved }} <small style="font-size: 0.9rem;">kg</small></h3>
+            <p>Food Rescued &amp; Delivered</p>
+            <small style="color: var(--text-muted); font-size: 0.775rem;">
+                {{ completed_count }} Completed Distributions
+            </small>
+        </div>
+    </div>
+
+    <div class="stat-card stat-green">
+        <div class="stat-icon">🍛</div>
+        <div class="stat-info">
+            <h3 id="statMealsServed">{{ meals_served }}</h3>
+            <p>Total Meals Provided</p>
+            <small style="color: var(--text-muted); font-size: 0.775rem;">
+                Based on ~0.4 kg/meal
+            </small>
+        </div>
+    </div>
+</div>
+
+<!-- Status Lifecycle Breakdown Bar -->
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+        <h2 class="card-title">🔄 Donation Lifecycle Pipeline</h2>
+        <a href="{{ url_for('admin_donations') }}" style="font-size: 0.85rem; font-weight: 600;">View All Records &rarr;</a>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; text-align: center;">
+        <div style="padding: 1rem; background: var(--bg-main); border-radius: var(--radius-md); border-top: 3px solid #f59e0b;">
+            <div style="font-size: 1.5rem; font-weight: 800; color: #d97706;">{{ pending_count }}</div>
+            <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Pending</div>
+        </div>
+        <div style="padding: 1rem; background: var(--bg-main); border-radius: var(--radius-md); border-top: 3px solid #3b82f6;">
+            <div style="font-size: 1.5rem; font-weight: 800; color: #2563eb;">{{ accepted_count }}</div>
+            <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Accepted</div>
+        </div>
+        <div style="padding: 1rem; background: var(--bg-main); border-radius: var(--radius-md); border-top: 3px solid #8b5cf6;">
+            <div style="font-size: 1.5rem; font-weight: 800; color: #7c3aed;">{{ picked_up_count }}</div>
+            <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Picked Up</div>
+        </div>
+        <div style="padding: 1rem; background: var(--bg-main); border-radius: var(--radius-md); border-top: 3px solid #10b981;">
+            <div style="font-size: 1.5rem; font-weight: 800; color: #059669;">{{ completed_count }}</div>
+            <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Completed</div>
+        </div>
+        <div style="padding: 1rem; background: var(--bg-main); border-radius: var(--radius-md); border-top: 3px solid #ef4444;">
+            <div style="font-size: 1.5rem; font-weight: 800; color: #dc2626;">{{ rejected_count }}</div>
+            <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Rejected</div>
+        </div>
+    </div>
+</div>
+
+<!-- Two-Column Operational Auditing Section -->
+<div style="display: grid; grid-template-columns: 3fr 2fr; gap: 1.5rem; align-items: start;">
+    <!-- Recent Donations Audit -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">🍲 Recent Food Donations</h2>
+            <a href="{{ url_for('admin_donations') }}" style="font-size: 0.85rem; font-weight: 600;">View All ({{ total_donations }}) &rarr;</a>
+        </div>
+
+        {% if recent_donations %}
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Food Details</th>
+                            <th>Donor</th>
+                            <th>Status</th>
+                            <th style="text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in recent_donations %}
+                            <tr>
+                                <td><strong>#{{ d.id }}</strong></td>
+                                <td>
+                                    <strong>{{ d.food_type }}</strong>
+                                    <div style="font-size: 0.775rem; color: var(--text-muted);">
+                                        {{ d.quantity }} {{ d.unit }} · {{ d.location }}
+                                    </div>
+                                </td>
+                                <td>{{ d.donor.name if d.donor else "Unknown" }}</td>
+                                <td>
+                                    <span class="status-badge status-{{ d.status.lower().replace(' ', '_') }}">
+                                        {{ d.status }}
+                                    </span>
+                                </td>
+                                <td style="text-align: right;">
+                                    <div style="display: inline-flex; gap: 0.4rem; justify-content: flex-end;">
+                                        <a href="{{ url_for('donation_details', donation_id=d.id) }}" class="btn btn-secondary btn-sm" title="View Details">
+                                            👁️
+                                        </a>
+                                        <form action="{{ url_for('admin_delete_donation', donation_id=d.id) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Permanently delete donation #{{ d.id }}?');">
+                                            <button type="submit" class="btn btn-danger btn-sm" title="Delete Donation">
+                                                🗑️
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 2.5rem 1rem; color: var(--text-muted);">
+                <p>No food donation records found in the database.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Recent Users Overview -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">👥 Registered Users</h2>
+            <a href="{{ url_for('admin_users') }}" style="font-size: 0.85rem; font-weight: 600;">View All ({{ total_users }}) &rarr;</a>
+        </div>
+
+        {% if recent_users %}
+            <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                {% for u in recent_users %}
+                    <div style="padding: 0.75rem 1rem; border-radius: var(--radius-md); background: var(--bg-main); border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
+                        <div>
+                            <div style="font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+                                {{ u.name }}
+                                {% if u.role == 'DONOR' %}
+                                    <span class="role-pill role-donor" style="font-size: 0.7rem; padding: 0.15rem 0.45rem;">Donor</span>
+                                {% elif u.role == 'NGO' %}
+                                    <span class="role-pill role-ngo" style="font-size: 0.7rem; padding: 0.15rem 0.45rem;">NGO</span>
+                                {% elif u.role == 'ADMIN' %}
+                                    <span class="role-pill" style="font-size: 0.7rem; padding: 0.15rem 0.45rem; background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca;">Admin</span>
+                                {% endif %}
+                            </div>
+                            <div style="font-size: 0.775rem; color: var(--text-muted); margin-top: 0.2rem;">
+                                ✉️ {{ u.email }} · 📍 {{ u.location }}
+                            </div>
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); text-align: right; white-space: nowrap;">
+                            {{ u.created_at.strftime('%d %b') if u.created_at else '' }}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="color: var(--text-muted); text-align: center; padding: 2rem 0;">No registered users.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

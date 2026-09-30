@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users - Admin Panel - AnnSeva{% endblock %}
+
+{% block content %}
+<!-- Top Header & Breadcrumb -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.35rem;">
+            <a href="{{ url_for('admin_dashboard') }}">Admin Control Center</a>
+            <span>/</span>
+            <span>User Management</span>
+        </div>
+        <h1 style="font-size: 1.85rem; font-weight: 800; margin: 0;">👥 Registered Users Management</h1>
+        <p style="color: var(--text-muted); margin-top: 0.25rem;">
+            Audit, inspect, and manage accounts for Donors, NGOs, and Administrators.
+        </p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+            &larr; Back to Control Center
+        </a>
+    </div>
+</div>
+
+<!-- Filters & Search Toolbar -->
+<div class="card" style="margin-bottom: 1.5rem; padding: 1.25rem;">
+    <form method="GET" action="{{ url_for('admin_users') }}" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <!-- Role Filter Tabs -->
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <a href="{{ url_for('admin_users', role='ALL', q=search_query) }}"
+               class="btn btn-sm {% if role_filter == 'ALL' or not role_filter %}btn-primary{% else %}btn-secondary{% endif %}">
+                All Roles ({{ users|length if role_filter == 'ALL' else '' }})
+            </a>
+            <a href="{{ url_for('admin_users', role='DONOR', q=search_query) }}"
+               class="btn btn-sm {% if role_filter == 'DONOR' %}btn-primary{% else %}btn-secondary{% endif %}">
+                Donors Only
+            </a>
+            <a href="{{ url_for('admin_users', role='NGO', q=search_query) }}"
+               class="btn btn-sm {% if role_filter == 'NGO' %}btn-primary{% else %}btn-secondary{% endif %}">
+                NGOs Only
+            </a>
+            <a href="{{ url_for('admin_users', role='ADMIN', q=search_query) }}"
+               class="btn btn-sm {% if role_filter == 'ADMIN' %}btn-primary{% else %}btn-secondary{% endif %}">
+                Admins Only
+            </a>
+        </div>
+
+        <!-- Search Input -->
+        <div style="display: flex; gap: 0.5rem; flex: 1; max-width: 400px; min-width: 250px;">
+            <input type="hidden" name="role" value="{{ role_filter }}">
+            <input type="text"
+                   name="q"
+                   value="{{ search_query }}"
+                   placeholder="Search by name, email, or city..."
+                   class="form-control"
+                   style="padding: 0.45rem 0.85rem; font-size: 0.875rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); width: 100%;">
+            <button type="submit" class="btn btn-secondary btn-sm" style="white-space: nowrap;">
+                🔍 Search
+            </button>
+            {% if search_query %}
+                <a href="{{ url_for('admin_users', role=role_filter) }}" class="btn btn-secondary btn-sm" title="Clear Search">
+                    ✕
+                </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<!-- Users Table -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Registered Accounts ({{ users|length }} matching)</h2>
+    </div>
+
+    {% if users %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">ID</th>
+                        <th>User Name</th>
+                        <th>Role</th>
+                        <th>Email &amp; Contact</th>
+                        <th>Location / Operating City</th>
+                        <th>Joined Date</th>
+                        <th>Donations Activity</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                        <tr>
+                            <td><strong>#{{ u.id }}</strong></td>
+                            <td>
+                                <strong>{{ u.name }}</strong>
+                                {% if u.id == current_user.id %}
+                                    <span style="font-size: 0.7rem; color: var(--primary); font-weight: 700; margin-left: 0.35rem;">(You)</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if u.role == 'DONOR' %}
+                                    <span class="role-pill role-donor">DONOR</span>
+                                {% elif u.role == 'NGO' %}
+                                    <span class="role-pill role-ngo">NGO</span>
+                                {% elif u.role == 'ADMIN' %}
+                                    <span class="role-pill" style="background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; font-weight: 700;">ADMIN</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div>{{ u.email }}</div>
+                                <div style="font-size: 0.775rem; color: var(--text-muted);">📞 {{ u.phone or "N/A" }}</div>
+                            </td>
+                            <td>
+                                <span>📍 {{ u.location }}</span>
+                            </td>
+                            <td>
+                                <div style="font-size: 0.85rem;">{{ u.created_at.strftime('%d %b %Y') if u.created_at else 'N/A' }}</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">{{ u.created_at.strftime('%I:%M %p') if u.created_at else '' }}</div>
+                            </td>
+                            <td>
+                                {% if u.role == 'DONOR' %}
+                                    <span style="font-size: 0.85rem; font-weight: 600;">
+                                        {{ u.donations_made|length }} donations listed
+                                    </span>
+                                {% elif u.role == 'NGO' %}
+                                    <span style="font-size: 0.85rem; font-weight: 600;">
+                                        {{ u.donations_accepted|length }} pickups claimed
+                                    </span>
+                                {% else %}
+                                    <span style="color: var(--text-muted); font-size: 0.85rem;">System Admin</span>
+                                {% endif %}
+                            </td>
+                            <td style="text-align: right;">
+                                {% if u.id == current_user.id %}
+                                    <span class="badge" style="background: #f1f5f9; color: var(--text-muted); font-size: 0.75rem; padding: 0.3rem 0.6rem; border-radius: var(--radius-sm);">
+                                        Active User
+                                    </span>
+                                {% else %}
+                                    <form action="{{ url_for('admin_delete_user', user_id=u.id) }}"
+                                          method="POST"
+                                          style="display: inline-block; margin: 0;"
+                                          onsubmit="return confirm('Permanently delete user {{ u.name }} ({{ u.email }})? All associated records will be purged.');">
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            🗑️ Delete
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+            <p style="font-size: 1.1rem; margin-bottom: 0.5rem;">No users found matching criteria.</p>
+            {% if search_query %}
+                <a href="{{ url_for('admin_users', role=role_filter) }}" class="btn btn-secondary btn-sm">Clear Search Filter</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
